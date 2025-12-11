@@ -20,7 +20,8 @@ export async function GET(
           select: {
             id: true,
             clueText: true,
-            clueType: true
+            clueType: true,
+            selectedForReminder: true
           }
         },
         participants: {
@@ -46,7 +47,8 @@ export async function GET(
       clues: game.clues.map((clue: any) => ({
         id: clue.id,
         text: clue.clueText,
-        type: clue.clueType
+        type: clue.clueType,
+        selected: clue.selectedForReminder
       }))
     })
 

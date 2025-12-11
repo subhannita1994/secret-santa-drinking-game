@@ -32,4 +32,5 @@ export interface Clue {
   gameId: string
   clueText: string
   clueType: string
+  selectedForReminder: boolean
 }

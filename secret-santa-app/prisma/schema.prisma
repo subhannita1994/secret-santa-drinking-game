@@ -58,10 +58,11 @@ model Assignment {
 
 // Generated clues
 model Clue {
-  id       String @id @default(uuid())
-  gameId   String @map("game_id")
-  clueText String @map("clue_text") @db.Text
-  clueType String @map("clue_type")
+  id                   String  @id @default(uuid())
+  gameId               String  @map("game_id")
+  clueText             String  @map("clue_text") @db.Text
+  clueType             String  @map("clue_type")
+  selectedForReminder  Boolean @default(false) @map("selected_for_reminder")
 
   // Relations
   game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)

@@ -27,12 +27,14 @@ export async function POST(
       }, { status: 500 })
     }
 
-    // Fetch the game with participants and clues
+    // Fetch the game with participants and selected clues
     const game = await prisma.game.findUnique({
       where: { id: gameId },
       include: {
         participants: true,
-        clues: true
+        clues: {
+          where: { selectedForReminder: true }
+        }
       }
     })
 
@@ -45,7 +47,7 @@ export async function POST(
     }
 
     if (game.clues.length === 0) {
-      return NextResponse.json({ error: 'No clues generated yet' }, { status: 400 })
+      return NextResponse.json({ error: 'No clues selected for reminder emails. Please select clues first.' }, { status: 400 })
     }
 
     // Prepare email data
