@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Games table
+model Game {
+  id             String   @id @default(uuid())
+  organizerEmail String   @map("organizer_email")
+  name           String
+  partyDate      DateTime @map("party_date") @db.Date
+  partyAddress   String   @map("party_address")
+  giftBudget     String   @map("gift_budget")
+  customMessage  String?  @map("custom_message") @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  participants Participant[]
+  assignments  Assignment[]
+  clues        Clue[]
+
+  @@map("games")
+}
+
+// Participants table
+model Participant {
+  id        String @id @default(uuid())
+  gameId    String @map("game_id")
+  name      String
+  email     String
+  gender    String
+  yearMoved Int    @map("year_moved")
+
+  // Relations
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@map("participants")
+}
+
+// Assignments (encrypted)
+model Assignment {
+  id             String   @id @default(uuid())
+  gameId         String   @map("game_id")
+  assignmentHash String   @map("assignment_hash") @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@map("assignments")
+}
+
+// Generated clues
+model Clue {
+  id       String @id @default(uuid())
+  gameId   String @map("game_id")
+  clueText String @map("clue_text") @db.Text
+  clueType String @map("clue_type")
+
+  // Relations
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@map("clues")
+}
+
+// NextAuth.js required tables
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
