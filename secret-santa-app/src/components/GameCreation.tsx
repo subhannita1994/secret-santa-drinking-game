@@ -16,7 +16,7 @@ const gameSchema = z.object({
     name: z.string().min(1, 'Name is required').max(255),
     email: z.string().email('Valid email is required'),
     gender: z.enum(['male', 'female', 'other']),
-    yearMoved: z.coerce.number()
+    yearMoved: z.number()
       .int()
       .min(1900, 'Year must be after 1900')
       .max(new Date().getFullYear(), 'Year cannot be in the future')
@@ -25,7 +25,7 @@ const gameSchema = z.object({
     participant1: z.string(),
     participant2: z.string(),
     reason: z.string().optional()
-  })).optional().default([])
+  })).default([])
 })
 
 type GameFormData = z.infer<typeof gameSchema>
@@ -329,7 +329,7 @@ export default function GameCreation() {
                     </label>
                     <input
                       type="number"
-                      {...register(`participants.${index}.yearMoved`)}
+                      {...register(`participants.${index}.yearMoved`, { valueAsNumber: true })}
                       className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       min="1900"
                       max={new Date().getFullYear()}
