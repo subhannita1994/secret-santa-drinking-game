@@ -10,8 +10,8 @@ type Participant = {
 }
 import { getAssignmentForParticipant } from './crypto'
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Initialize Resend only if API key is provided
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export interface EmailData {
   gameName: string
@@ -55,6 +55,10 @@ export async function sendAssignmentEmails(
     const emailContent = generateEmailContent(participant, receiver, emailData)
     
     try {
+      if (!resend) {
+        throw new Error('Resend client not initialized')
+      }
+      
       const { data, error } = await resend.emails.send({
         from: fromEmail,
         to: [participant.email],
@@ -206,6 +210,10 @@ export async function sendReminderEmails(
     const emailContent = generateReminderEmailContent(participant, clues, emailData)
     
     try {
+      if (!resend) {
+        throw new Error('Resend client not initialized')
+      }
+      
       const { data, error } = await resend.emails.send({
         from: fromEmail,
         to: [participant.email],
