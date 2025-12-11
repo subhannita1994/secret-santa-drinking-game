@@ -25,7 +25,7 @@ const gameSchema = z.object({
     participant1: z.string(),
     participant2: z.string(),
     reason: z.string().optional()
-  })).default([])
+  }))
 })
 
 type GameFormData = z.infer<typeof gameSchema>
