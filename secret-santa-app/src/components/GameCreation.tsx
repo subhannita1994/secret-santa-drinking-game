@@ -15,9 +15,7 @@ const gameSchema = z.object({
   participants: z.array(z.object({
     name: z.string().min(1, 'Name is required').max(255),
     email: z.string().email('Valid email is required'),
-    gender: z.enum(['male', 'female', 'other'], {
-      required_error: 'Gender is required'
-    }),
+    gender: z.enum(['male', 'female', 'other']),
     yearMoved: z.coerce.number()
       .int()
       .min(1900, 'Year must be after 1900')
