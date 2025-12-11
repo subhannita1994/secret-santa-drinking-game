@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd secret-santa-app && npm run build",
+  "outputDirectory": "secret-santa-app/.next",
+  "installCommand": "cd secret-santa-app && npm install"
+}
