@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Calendar, Users, MessageSquare, ExternalLink, Copy, Check } from 'lucide-react'
+import { Calendar, Users, MessageSquare, ExternalLink, Copy, Check, Mail } from 'lucide-react'
 
 interface Game {
   id: string
@@ -33,6 +33,8 @@ export default function GameList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [copiedGameId, setCopiedGameId] = useState<string | null>(null)
+  const [sendingReminder, setSendingReminder] = useState<string | null>(null)
+  const [reminderSuccess, setReminderSuccess] = useState<string | null>(null)
 
   useEffect(() => {
     fetchGames()
@@ -68,6 +70,33 @@ export default function GameList() {
   const openPartyInterface = (gameId: string) => {
     const link = `${window.location.origin}/party/${gameId}`
     window.open(link, '_blank')
+  }
+
+  const sendReminderEmail = async (gameId: string) => {
+    setSendingReminder(gameId)
+    setReminderSuccess(null)
+    
+    try {
+      const response = await fetch(`/api/games/${gameId}/send-reminder`, {
+        method: 'POST'
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to send reminder emails')
+      }
+      
+      const result = await response.json()
+      setReminderSuccess(gameId)
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setReminderSuccess(null), 3000)
+      
+    } catch (error) {
+      console.error('Error sending reminder emails:', error)
+      // Could add error state here if needed
+    } finally {
+      setSendingReminder(null)
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -159,7 +188,36 @@ export default function GameList() {
                   </p>
                 </div>
                 
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 flex-wrap">
+                  <button
+                    onClick={() => sendReminderEmail(game.id)}
+                    disabled={sendingReminder === game.id}
+                    className={`inline-flex items-center px-3 py-2 rounded-lg text-sm transition duration-200 ${
+                      reminderSuccess === game.id 
+                        ? 'bg-green-100 text-green-700 border border-green-300' 
+                        : sendingReminder === game.id
+                        ? 'bg-blue-100 text-blue-700 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    }`}
+                  >
+                    {sendingReminder === game.id ? (
+                      <>
+                        <div className="animate-spin w-4 h-4 mr-1 border border-blue-600 border-t-transparent rounded-full"></div>
+                        Sending...
+                      </>
+                    ) : reminderSuccess === game.id ? (
+                      <>
+                        <Check className="w-4 h-4 mr-1" />
+                        Sent!
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4 mr-1" />
+                        Send Reminders
+                      </>
+                    )}
+                  </button>
+                  
                   <button
                     onClick={() => copyPartyLink(game.id)}
                     className="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm transition duration-200"
@@ -265,9 +323,9 @@ export default function GameList() {
                         <p className="text-gray-700 mt-2">{clue.clueText}</p>
                       </div>
                     ))}
-                    <div className="bg-yellow-50 border border-yellow-200 p-3 rounded mt-3">
-                      <p className="text-sm text-yellow-800">
-                        <strong>Note:</strong> These clues will be sent to participants via reminder email the day before the party.
+                    <div className="bg-blue-50 border border-blue-200 p-3 rounded mt-3">
+                      <p className="text-sm text-blue-800">
+                        <strong>Tip:</strong> Use the "Send Reminders" button above to email these clues to all participants when you're ready!
                       </p>
                     </div>
                   </div>
