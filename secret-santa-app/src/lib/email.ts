@@ -62,9 +62,9 @@ export async function sendAssignmentEmails(
       }
       
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: `Secret Santa <${fromEmail}>`,
         to: [participant.email],
-        subject: emailData.gameName,
+        subject: `🎅 ${emailData.gameName}`,
         html: emailContent.html,
         text: emailContent.text
       })
@@ -222,9 +222,9 @@ export async function sendReminderEmails(
       }
       
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: `Secret Santa <${fromEmail}>`,
         to: [participant.email],
-        subject: `${emailData.gameName} - Party tomorrow!`,
+        subject: `🎅 ${emailData.gameName} - Party tomorrow!`,
         html: emailContent.html,
         text: emailContent.text
       })
