@@ -56,7 +56,8 @@ export default function GameCreation() {
         { name: '', email: '', gender: 'male', yearMoved: new Date().getFullYear() },
         { name: '', email: '', gender: 'female', yearMoved: new Date().getFullYear() },
         { name: '', email: '', gender: 'male', yearMoved: new Date().getFullYear() }
-      ]
+      ],
+      exclusions: []
     }
   })
 
