@@ -30,13 +30,20 @@ export async function sendAssignmentEmails(
   encryptedAssignments: string,
   emailData: EmailData
 ): Promise<void> {
+  console.log('🚀 PRODUCTION DEBUG: sendAssignmentEmails called with participants:', participants.length)
+  console.log('🔑 PRODUCTION DEBUG: RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY)
+  console.log('📧 PRODUCTION DEBUG: RESEND_FROM_EMAIL:', process.env.RESEND_FROM_EMAIL)
+  console.log('🤖 PRODUCTION DEBUG: resend client initialized:', !!resend)
+  
   if (!process.env.RESEND_API_KEY) {
-    console.warn('Resend API key not configured - skipping email sending')
+    console.error('❌ PRODUCTION DEBUG: Resend API key not configured - skipping email sending')
     return // Skip email sending gracefully
   }
 
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'santa@secretsanta.bar'
   const participantMap = new Map(participants.map(p => [p.id, p]))
+  
+  console.log('✉️ PRODUCTION DEBUG: Starting email send to', participants.length, 'participants')
 
   // Send emails sequentially with delays to avoid rate limiting (2 requests/second limit)
   for (let i = 0; i < participants.length; i++) {
@@ -57,9 +64,14 @@ export async function sendAssignmentEmails(
     const emailContent = generateEmailContent(participant, receiver, emailData)
     
     try {
+      console.log(`📤 PRODUCTION DEBUG: Attempting to send email to ${participant.email}`)
+      
       if (!resend) {
+        console.error('❌ PRODUCTION DEBUG: Resend client not initialized')
         throw new Error('Resend client not initialized')
       }
+      
+      console.log('✅ PRODUCTION DEBUG: Resend client is available, sending email...')
       
       const { data, error } = await resend.emails.send({
         from: `Secret Santa <${fromEmail}>`,
@@ -70,9 +82,11 @@ export async function sendAssignmentEmails(
       })
 
       if (error) {
+        console.error('❌ PRODUCTION DEBUG: Resend API error:', error)
         throw error
       }
       
+      console.log(`✅ PRODUCTION DEBUG: Email sent successfully to ${participant.email}`)
       console.log(`Assignment email sent to ${participant.email}`)
       
       // Add delay between emails to respect rate limit (500ms = 2 requests/second)
@@ -80,7 +94,7 @@ export async function sendAssignmentEmails(
         await new Promise(resolve => setTimeout(resolve, 600))
       }
     } catch (error) {
-      console.error(`Failed to send email to ${participant.email}:`, error)
+      console.error(`❌ PRODUCTION DEBUG: Failed to send email to ${participant.email}:`, error)
       // Continue sending other emails even if one fails
     }
   }
