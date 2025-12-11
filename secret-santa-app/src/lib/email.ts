@@ -38,18 +38,20 @@ export async function sendAssignmentEmails(
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'santa@secretsanta.bar'
   const participantMap = new Map(participants.map(p => [p.id, p]))
 
-  const emailPromises = participants.map(async (participant) => {
+  // Send emails sequentially with delays to avoid rate limiting (2 requests/second limit)
+  for (let i = 0; i < participants.length; i++) {
+    const participant = participants[i]
     const receiverId = getAssignmentForParticipant(encryptedAssignments, participant.id)
     
     if (!receiverId) {
       console.error(`No assignment found for participant ${participant.name}`)
-      return
+      continue
     }
 
     const receiver = participantMap.get(receiverId)
     if (!receiver) {
       console.error(`Receiver not found for ID ${receiverId}`)
-      return
+      continue
     }
 
     const emailContent = generateEmailContent(participant, receiver, emailData)
@@ -72,13 +74,16 @@ export async function sendAssignmentEmails(
       }
       
       console.log(`Assignment email sent to ${participant.email}`)
+      
+      // Add delay between emails to respect rate limit (500ms = 2 requests/second)
+      if (i < participants.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 600))
+      }
     } catch (error) {
       console.error(`Failed to send email to ${participant.email}:`, error)
-      throw error
+      // Continue sending other emails even if one fails
     }
-  })
-
-  await Promise.all(emailPromises)
+  }
 }
 
 /**
@@ -206,7 +211,9 @@ export async function sendReminderEmails(
 
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'santa@secretsanta.bar'
 
-  const emailPromises = participants.map(async (participant) => {
+  // Send emails sequentially with delays to avoid rate limiting (2 requests/second limit)
+  for (let i = 0; i < participants.length; i++) {
+    const participant = participants[i]
     const emailContent = generateReminderEmailContent(participant, clues, emailData)
     
     try {
@@ -227,13 +234,16 @@ export async function sendReminderEmails(
       }
       
       console.log(`Reminder email sent to ${participant.email}`)
+      
+      // Add delay between emails to respect rate limit (600ms = ~1.6 requests/second)
+      if (i < participants.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 600))
+      }
     } catch (error) {
       console.error(`Failed to send reminder email to ${participant.email}:`, error)
-      throw error
+      // Continue sending other emails even if one fails
     }
-  })
-
-  await Promise.all(emailPromises)
+  }
 }
 
 /**
